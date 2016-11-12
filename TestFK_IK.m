@@ -8,12 +8,12 @@ Robot=StandfordRobot();
 %Four solution for th1=120, th2=45, th3=10, th4=45, th5=26, th6=0
 
 %Input joint variables
-q(1,1)=-120*pi/180;
-q(2,1)=40*pi/180;
-q(3,1)=15;
-q(4,1)=0*pi/180;
-q(5,1)=-30*pi/180;
-q(6,1)=110*pi/180;
+q(1,1)=120*pi/180;
+q(2,1)=45*pi/180;
+q(3,1)=10;
+q(4,1)=45*pi/180;
+q(5,1)=0*pi/180;
+q(6,1)=0*pi/180;
 %Forward kinematics method
 T=Robot.fwKin(q)
 

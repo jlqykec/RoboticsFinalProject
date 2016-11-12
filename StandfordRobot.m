@@ -301,11 +301,11 @@ classdef StandfordRobot
             %% Conditions for sign of theta 5
             %Check the solution of theta 4 is consisten with the
             %sign of theta 5
-            if th5(1) < 0.00001
+            if th5(1) < 0
                 sol(1,7)=0;
             end
             
-            if th5(2) > 0.00001
+            if th5(2) > 0
                 sol(2,7)=0;
             end
             
