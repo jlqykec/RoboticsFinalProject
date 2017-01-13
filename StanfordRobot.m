@@ -1,4 +1,4 @@
-classdef StandfordRobot
+classdef StanfordRobot
     properties
         %Links parameters
         alpha1;
@@ -9,14 +9,12 @@ classdef StandfordRobot
         %Joints values
         q;           
         %Joints limits
-        q_lim;
-        
+        q_lim;        
     end
     
-    methods (Access = public)  
-        
+    methods (Access = public)          
         %Constructor
-        function obj=StandfordRobot()
+        function obj=StanfordRobot()
             %Links parameters
             obj.alpha1=-pi/2;
             obj.d2=6.375;
@@ -48,8 +46,8 @@ classdef StandfordRobot
         end
         
         %Forward Kinematics
-        function T6=fwKin(this,q)
-            %Check the six joints valus are given
+        function output=fwKin(this,q,outputType)
+            %Check the six joints values are given
             if size(q,1)~=6
                 error('The forward kinematics require 6DOF joints values')
             end
@@ -80,7 +78,7 @@ classdef StandfordRobot
             C5=cos(q(5));   S5=sin(q(5));
             C6=cos(q(6));   S6=sin(q(6));            
             
-            %Initialize transformation matrix
+            %Initialize the transformation matrix
             T6=zeros(4,4);
             
             %orientation direction
@@ -103,7 +101,8 @@ classdef StandfordRobot
             %az
             T6(3,3)=-S2*C4*S5+C2*C5;
             
-            %normal direction
+            %normal direction as cross product of the orientation and
+            %approach direction
             T6(1:3,1)=cross(T6(1:3,2),T6(1:3,3));
             
             %Position
@@ -113,7 +112,19 @@ classdef StandfordRobot
             T6(2,4)=S1*S2*q(3)+C1*this.d2;
             %pz
             T6(3,4)=C2*q(3);
-            T6(4,4)=1;            
+            T6(4,4)=1;    
+            
+            if strcmp(outputType,'Cart')
+                output = T6;
+            end
+            
+            if strcmp(outputType,'RPY')
+                %Get the position vector from the T6 matrix
+                pos=T6(1:3,4);
+                %Transform the orientation vectors to RPY
+                RPY=this.cartToRPY(T6);
+                output=[pos' RPY(1,:);pos' RPY(2,:)];
+            end            
         end
         
         %Inverse Kinematics
@@ -126,10 +137,8 @@ classdef StandfordRobot
             %Initialize the joint solutions, there are four possible solutions
             %The seventh element defines if the solution is valid or not
             sol=zeros(4,7); 
-            sol(1:4,7)=1; %All the solutions start with a valid flag
-                        
-            %% Theta 1 solution
-            
+            sol(1:4,7)=1; %All the solutions start with a valid flag                        
+            %% Step 1: Theta 1 solution            
             %Initialize theta 1 solutions and their trigonometric functions
             th1=zeros(1,2);
             C1=zeros(1,2);
@@ -166,9 +175,7 @@ classdef StandfordRobot
                     sol(2*i-1:2*i,7)=0;
                 end                
             end
-            
-            %% Theta 2 and d3 solution
-            
+            %% Step 2: Theta 2 and d3 solution            
             %Initialize theta 2 solutions and their trigonometric functions
             th2=zeros(1,2);
             C2=zeros(1,2);
@@ -202,9 +209,7 @@ classdef StandfordRobot
                     end         
                 end                
             end
-            
-            %% Theta 4 solution
-            
+            %% Step 3: Theta 4 solution            
             %Initialize theta 4 solutions and their trigonometric functions
             th4=zeros(1,4);
             C4=zeros(1,4);
@@ -247,19 +252,15 @@ classdef StandfordRobot
                     end
                     
                 end                
-            end
-            
-            
-            %% Theta 5 solution
-            
+            end  
+            %% Step 4: Theta 5 solution            
             %Initialize theta 5 solutions and their trigonometric functions
             th5=zeros(1,4);
             C5=zeros(1,4);
             S5=zeros(1,4);
             
             for i=1:4 
-                if sol(i,7)~=0 %Check if the solution is valid first
-                    
+                if sol(i,7)~=0 %Check if the solution is valid first                   
                     %Indexes for th1 and th2
                     if(i<3)
                         idx1=1;
@@ -272,10 +273,10 @@ classdef StandfordRobot
                     den=S2(idx1)*(C1(idx1)*a(1)+S1(idx1)*a(2))+C2(idx1)*a(3);
                     
                     th5(i)=atan2(num,den);
-                    
-                    %If theta 5 is zero change theta 4 to zero and
-                    %recalculate theta 5                    
-                    if(abs(th5(i))<0.001) %If theta 5 is really close to zero                        
+                    %%%%%%%%%%%%%%%%%%%  Step 5 %%%%%%%%%%%%%%%%%%%%%
+                    %Check the value of theta 5. If theta 5 is zero, then
+                    % set theta 4 = zero and recalculate theta 5
+                    if(abs(th5(i))<0.0001) %If theta 5 is really close to zero                        
                         sol(i,4)=0;
                         C4(i)=1;    S4(i)=0;                       
                        
@@ -297,10 +298,9 @@ classdef StandfordRobot
                     end                    
                 end
             end
-            
             %% Conditions for sign of theta 5
             %Check the solution of theta 4 is consisten with the
-            %sign of theta 5
+            %sign of theta 5, eliminate the ones that are not consistent
             if th5(1) < 0
                 sol(1,7)=0;
             end
@@ -315,9 +315,8 @@ classdef StandfordRobot
             
             if th5(4) > 0
                 sol(4,7)=0;
-            end            
-
-            %% Theta 6 solution
+            end    
+            %% Step 6: Theta 6 solution
             for i=1:4 
                 if sol(i,7)~=0 %Check if the solution is valid first
                     
@@ -343,9 +342,8 @@ classdef StandfordRobot
                     else
                         sol(i,7)=0;
                     end
-                end                
-            end
-            
+                end               
+            end            
             %% Store the valid solutions
             n=1;
             isThereASol=0;
@@ -357,16 +355,11 @@ classdef StandfordRobot
                     isThereASol=1;
                 end
             end
-
-            sol=sol*180/pi;
-            sol(:,3)=sol(:,3)*pi/180
-            
+           
             if ~isThereASol
                 error('There is not a valid solution');
-            end
-                                  
-        end   
-                
+            end                                  
+        end                   
     end
     
     methods (Access = private)
@@ -378,8 +371,43 @@ classdef StandfordRobot
                 flag=0;
             end
         end
-    end
-    
+        
+        function RPY=cartToRPY(this,T6)
+            %RPY has two solutions therefore is a 2x3 matrix
+            RPY = zeros(2,3);             
+            %Extract the necessary vectors for calculations
+            %Normal direction
+            nx=T6(1,1);
+            ny=T6(2,1);                        
+            %Approaching direction
+            ax=T6(1,3);
+            ay=T6(2,3);            
+            az=T6(3,3);            
+            %Orientation direction
+            ox=T6(1,2);            
+            oy=T6(2,2);                        
+                        
+            %Check for the condition of ax and ay different from zero
+            if ax == 0 && axy ==0
+                RPY(1,1) = 0;
+            else
+                RPY(1,1)=atan2(ay,ax);
+            end
+            %the second solution of phi is given by adding pi to the first
+            %solution
+            RPY(2,1) = RPY(1,1)+pi;            
+            %Calculate theta and psi
+            for i=1:2
+               sinPhi=sin(RPY(i,1));
+               cosPhi=cos(RPY(i,1));
+               %Theta
+               RPY(i,2)=atan2(cosPhi*ax+sinPhi*ay,az);
+               %Psi
+               RPY(i,3)=atan2(-sinPhi*nx+cosPhi*ny,-sinPhi*ox+cosPhi*oy);
+            end
+        end
+        
+    end 
 end
 
 
