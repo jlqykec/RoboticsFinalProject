@@ -1,6 +1,11 @@
 %% Trajectory planning for the Stanford robot
 clear all
 clc
+
+%Add the paths for the StandfordRobot and trajectory planning
+addpath StanfordRobot
+addpath TrajectoryPlanning
+
 %Create the StandfordRobot object
 Robot=StanfordRobot();
 %% Starting, Via Point and End Point
@@ -25,31 +30,6 @@ PC=[ 0,-1, 0,  5;
  tacc=0.2;
  ts=0.002;
  
-%  %% Trajectory planning joint motion
-% %Point A
-% %Find the inverse kinematics using the StandforRobot object
-% Q=Robot.invKin(PA);
-% %Use just the first solution
-% PA_q=Q(1,:)'
-% 
-% %Point B
-% %Find the inverse kinematics using the StandforRobot object
-% Q=Robot.invKin(PB);
-% %Use just the first solution
-% PB_q=Q(1,:)'
-% 
-% %Point C
-% %Find the inverse kinematics using the StandforRobot object
-% Q=Robot.invKin(PC);
-% %Use just the first solution
-% PC_q=Q(1,:)'
-% 
-% %Get the motion planning
-% Motion=PathPlanJointSpace(PA_q,PB_q,PC_q,TAB,TBC,tacc,ts);
-% 
-% %Plot the evolution of position, velocity and acceleration
-% plotEvolution(Motion)
-
 %% Trajectory planning cartesian motion
 
 P1=[-1, 0, 0,  0;
@@ -68,7 +48,7 @@ P3=[-1, 0, 0, 10;
      0, 0, 0,  1];
 
 %Motion=PathPlanTaskSpace(P1,P2,P3,1,1,0.1,ts);
-Motion=PathPlanTaskSpace(PA,PB,PC,TAB,TBC,tacc,ts);
+Motion=PathPlanCartesianSpace(PA,PB,PC,TAB,TBC,tacc,ts);
 T=Motion.T6;
 
 pos=reshape(T(1:3,4,:),3,[]);
