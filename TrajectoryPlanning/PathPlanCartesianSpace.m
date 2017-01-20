@@ -1,8 +1,8 @@
 function Motion=PathPlanTaskSpace(PA,PB,PC,TAB,TBC,tacc,ts)
-%% Motion from PA to PA'
+%% First part of the path: from PA to a point PA'
+% Drive parmeters for Motion from PA to PA'
 [x,y,z,theta,phi,psi]=getDriveParam(PA,PB);
 
-%% First part of the path: from PA to a point PA'
 %Time from 0 to a point A' before the transition
 tA_Ap=0:ts:TAB-tacc;
 

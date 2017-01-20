@@ -18,7 +18,7 @@ for i=1:n1
     ddq(:,i)=[0;0;0;0;0;0];    
 end
 
-%% Second part of the path: transition from line AB to line BC
+%% Second part of the path: transition from line AB to line BC. 
 %Calculate deltaB and deltaC
 deltaB=q(:,end)-qB;
 %deltaB=qA-qB;
@@ -45,7 +45,7 @@ dq=[dq dq2(:,2:end)];
 ddq=[ddq ddq2(:,2:end)];
 
 
-%% Third part of the path: from B to C
+%% Third part of the path: from C' to C
 tB_C=tacc:ts:TBC;
 T1=TBC;
 VBC=deltaC/TBC;

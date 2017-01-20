@@ -17,7 +17,8 @@ classdef StanfordRobot
         function obj=StanfordRobot()
             %Links parameters
             obj.alpha1=-pi/2;
-            obj.d2=6.375;
+            obj.d2=6.375; %In inches
+            %obj.d2=6.375*2.54; %In centimeters
             obj.alpha2=pi/2;
             obj.alpha4=-pi/2;
             obj.alpha5=pi/2;
@@ -35,8 +36,10 @@ classdef StanfordRobot
             obj.q_lim(1,2,1)=160*pi/180;
             obj.q_lim(1,1,2)=-125*pi/180;
             obj.q_lim(1,2,2)=125*pi/180;
-            obj.q_lim(1,1,3)=-30;
-            obj.q_lim(1,2,3)=30;
+            obj.q_lim(1,1,3)=-30; %In inches
+            obj.q_lim(1,2,3)=30; %In inches
+%             obj.q_lim(1,1,3)=-30*2.54; %In centimeters
+%             obj.q_lim(1,2,3)=30*2.54; %In centimeters
             obj.q_lim(1,1,4)=-140*pi/180;
             obj.q_lim(1,2,4)=140*pi/180;
             obj.q_lim(1,1,5)=-100*pi/180;

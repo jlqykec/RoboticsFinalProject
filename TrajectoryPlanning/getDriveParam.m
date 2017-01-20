@@ -1,5 +1,5 @@
 function [x,y,z,theta,phi,psi]=getDriveParam(PA,PB)
-% Extract the vectors from PA and PB
+%% Extract the vectors from PA and PB
 PAn=PA(1:3,1);  PBn=PB(1:3,1);  
 PAo=PA(1:3,2);  PBo=PB(1:3,2);  
 PAa=PA(1:3,3);  PBa=PB(1:3,3);  

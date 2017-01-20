@@ -6,12 +6,14 @@ clc
 addpath StanfordRobot
 addpath TrajectoryPlanning
 
-%Add path for the plottin functions
+%Add path for the plotting functions
 addpath PlottingFunctions
 
 %Create the StandfordRobot object
 Robot=StanfordRobot();
 %% Starting, Via Point and End Point
+
+%In centimeters
 PA=[ 0, 0,-1,  8;
     -1, 0, 0,  0;
      0, 1, 0, 22;
@@ -26,6 +28,22 @@ PC=[ 0,-1, 0,  5;
      0, 0, 1, 12;
     -1, 0, 0, -2;
      0, 0, 0,  1];
+
+% %In inches
+% PA=[ 0, 0,-1, 8/2.54;
+%     -1, 0, 0,  0;
+%      0, 1, 0, 22/2.54;
+%      0, 0, 0,  1];
+% 
+% PB=[ 0, 0, 1, -9/2.54;
+%      0, 1, 0, 15/2.54;
+%     -1, 0, 0,  8/2.54;
+%      0, 0, 0,  1];
+% 
+% PC=[ 0,-1, 0,  5/2.54;
+%      0, 0, 1, 12/2.54;
+%     -1, 0, 0, -2/2.54;
+%      0, 0, 0,  1];
  
  %Times
  TAB=0.5;
@@ -38,30 +56,27 @@ PC=[ 0,-1, 0,  5;
 %Find the inverse kinematics using the StandforRobot object
 Q=Robot.invKin(PA);
 %Use just the first solution
-PA_q=Q(1,:)';
+qA=Q(1,:)';
 
 %Point B
 %Find the inverse kinematics using the StandforRobot object
 Q=Robot.invKin(PB);
 %Use just the first solution
-PB_q=Q(1,:)';
+qB=Q(1,:)';
 
 %Point C
 %Find the inverse kinematics using the StandforRobot object
 Q=Robot.invKin(PC);
 %Use just the first solution
-PC_q=Q(1,:)';
+qC=Q(1,:)';
 
-%Get the motion planning and store it in the strcuture Motion
-Motion=PathPlanJointSpace(PA_q,PB_q,PC_q,TAB,TBC,tacc,ts);
+%Get the motion planning and store it in the Motion structure
+Motion=PathPlanJointSpace(qA,qB,qC,TAB,TBC,tacc,ts);
 
 %% Plot the evolution in the joint space
 plotJointEvolution(Motion)
 
 %% Plot the end effector motion
-
-%First use the forward kinematics to find the transformation matrix T6 for
-%each point in the trajectory
 
 %Find the number of points in the trajectory
 n=length(Motion.q);
@@ -70,16 +85,14 @@ n=length(Motion.q);
 %the T6 matrices
 T6Traj=zeros(4,4,n);
 
+%Loop through each point in the joint space and use the forward kinematics 
+%to find the transformation matrix T6
 for i=1:n
-    T6=Robot.fwKin(Motion.q(:,i),'Cart'); %Calculate the forward kinematics
-    T6Traj(:,:,i)=T6; %Store the T6 matrix in the cartesian trajectory
+    %Calculate the forward kinematics and store the T6 matrix for each
+    %point
+    T6Traj(:,:,i)=Robot.fwKin(Motion.q(:,i),'Cart');
 end
 
 %Plot the cartesian motion
-figure()
-plotEndEffectorMotion(T6Traj);
-text(PA(1,4),PA(2,4),PA(3,4),'A(8,0,22)');
-text(PB(1,4),PB(2,4),PB(3,4),'B(-9,15,8)');
-text(PC(1,4),PC(2,4),PC(3,4),'C(5,12,-2)');
-
+plotEndEffectorMotion(T6Traj,PA,PB,PC);
 
